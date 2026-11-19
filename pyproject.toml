@@ -4,12 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lisan"
-version = "0.1.0"
-description = "Arabic text normalization for search, matching, and model input: diacritics, alef and yeh variants, Eastern digits, language ratio. Dependency-free Python."
+version = "0.2.0"
+description = "Arabic text infrastructure: normalization profiles, light stemming, BM25 search, cross-script name matching, Buckwalter transliteration, Arabic-Indic numbers, dialect and Arabizi signals. Dependency-free Python."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "AndMaverick LLC" }]
 
+[project.scripts]
+lisan = "lisan.cli:main"
+
+[tool.setuptools.package-data]
+lisan = ["py.typed"]
+
 [tool.setuptools.packages.find]
 include = ["lisan*"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+strict = true
+files = ["lisan"]
