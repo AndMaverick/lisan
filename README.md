@@ -106,6 +106,8 @@ ruff check . && mypy
 
 The test files write Arabic as literal UTF-8.
 
+**Related repositories:** [nusantara](https://github.com/AndMaverick/nusantara) does the same job for Indonesian. [sovereign.map](https://github.com/AndMaverick/sovereign.map) checks where the data goes once it has been read. [mao-framework](https://github.com/AndMaverick/mao-framework) has a smaller module, `mao.lingua`, that normalises Arabic and Indonesian text inside a governed run.
+
 MIT licensed. Built by [AndMaverick LLC](https://www.andmaverick.com).
 
 ---
