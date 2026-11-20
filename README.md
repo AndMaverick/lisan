@@ -1,6 +1,8 @@
 # lisan
 
-Arabic is spoken by some 400 million people and is thin on the web, so most AI infrastructure treats it as an afterthought. The first thing that goes wrong is mundane: the same word written three ways does not match itself, and the same person is written six ways in Latin letters. lisan is the infrastructure layer that fixes it: normalization with named profiles, light stemming, BM25 search, name matching across Arabic and Latin, transliteration, Arabic-Indic numbers, and routing signals for dialect and Arabizi. Standard library only, Python 3.10 to 3.13, typed, 88 tests.
+Arabic is spoken by some 400 million people and is thin on the web, so most AI infrastructure treats it as an afterthought. The first thing that goes wrong is mundane. The same word written three ways does not match itself. The same person is written six ways in Latin letters, and a search for one finds none of the others.
+
+lisan is the layer that fixes this before the model sees the text: normalization with named profiles, light stemming, BM25 search, name matching across Arabic and Latin, transliteration, Eastern Arabic numerals, and routing signals for dialect and Arabizi. Standard library only, Python 3.10 to 3.13, typed, 88 tests.
 
 ## Use
 
@@ -25,11 +27,11 @@ The 0.1 API (`normalize`, `tokens`, `search_key`, `arabic_ratio`, `is_arabic_let
 
 | | |
 |---|---|
-| **Normalization** | Profiles `legacy` (exactly 0.1), `clean` (Unicode hygiene only: NFKC turns presentation forms and ligatures such as the Allah ligature and lam-alef into plain letters, invisible bidi and zero-width characters go, Quranic marks go) and `search` (also Persian and Urdu letters, hamza, teh marbuta, punctuation). Every option can be overridden by keyword. Digits convert to ASCII, Eastern Arabic-Indic or Persian. |
-| **Light stemming** | Removes definite-article and clitic prefixes and plural and feminine suffixes, never a root. Affix lists follow the Larkey, Ballesteros and Connell (2002) family; the minimum-stem guards are this library's own and are parameters. Character n-grams for retrieval. |
+| **Normalization** | Profiles `legacy` (exactly 0.1), `clean` (Unicode hygiene only: NFKC turns presentation forms and ligatures such as the Allah ligature and lam alef into plain letters, invisible bidirectional and zero width characters go, Quranic marks go) and `search` (also Persian and Urdu letters, hamza, teh marbuta, punctuation). Every option can be overridden by keyword. Digits convert to ASCII, Eastern Arabic or Persian. |
+| **Light stemming** | Removes the definite article, clitic prefixes and plural and feminine suffixes, never a root. Affix lists follow the Larkey, Ballesteros and Connell (2002) family; the guards on minimum stem length are this library's own and are parameters. Character n grams for retrieval. |
 | **Search** | `Index`: BM25 over analyzers `raw`, `normalized`, `stemmed`, `trigram`, or your own function. Deterministic ties. |
-| **Name matching** | Consonant skeletons put Arabic and Latin spellings in one alphabet: digraphs (kh, sh, th, dh, gh), arabizi digits (7, 3, 5, 9 and the rest), doubled letters, bin and ibn, al and el, titles, abd-compounds. Token-by-token alignment where the worst token sets the score, so one wrong token in a long name is not averaged away. Reports coverage for partial names and a confidence flag for very short skeletons. |
-| **Transliteration** | Buckwalter, both ways, one-to-one, round-trips with vowel marks. |
+| **Name matching** | Consonant skeletons put Arabic and Latin spellings in one alphabet: digraphs (kh, sh, th, dh, gh), arabizi digits (7, 3, 5, 9 and the rest), doubled letters, bin and ibn, al and el, titles, compounds that begin with abd. Token by token alignment where the worst token sets the score, so one wrong token in a long name is not averaged away. Reports coverage for partial names and a confidence flag for very short skeletons. |
+| **Transliteration** | Buckwalter, in both directions, one character for one character, and a round trip keeps the vowel marks. |
 | **Numbers** | Find and read numbers written with any digit set and Arabic separators, with positions. |
 | **Routing signals** | Arabic share, RTL, script runs, dialect marker words (Egyptian, Levantine, Gulf, Maghrebi), Arabizi score. |
 | **CLI** | `lisan normalize`, `clean`, `tokens`, `translit`, `numbers`, `detect`, `match`. `match` exits 1 below its threshold and `detect --min-arabic` exits 1 below its share, so a pipeline can gate on them. Exit 2 is an error. |
@@ -81,19 +83,19 @@ Search, success at rank 1 (the target document is the top hit)
 
 - **Spelling variation** is what breaks naive matching. With plain whitespace tokens, 7 of 16 queries miss their document because the query spells a word differently (hamza forms, teh marbuta typed as heh, diacritics, Eastern digits, Persian letters). Normalization fixes all 16.
 - **Inflection** is what normalization cannot fix: 0 of 6 until the stemmer is on, then 5 of 6. The sixth is a broken plural (مدينة and مدن), which needs a root or lemma and is out of reach of any light stemmer.
-- **Names**: 76 same-name pairs (Latin to Latin, Arabic to Latin, Arabic to Arabic, arabizi) all match, 42 different-name pairs are all kept apart, at threshold 0.85.
+- **Names**: 76 pairs of the same name (Latin to Latin, Arabic to Latin, Arabic to Arabic, arabizi) all match, 42 pairs of different names are all kept apart, at threshold 0.85.
 - **Known collisions and misses are pinned in the tests**, not hidden. See below.
 
 ## Honest limits
 
-- **Name skeletons drop vowels, so vowel-only differences collide.** Rashid and Rashad, Omar and Amir, Nawaf and Naif, and (across scripts) Hasan and Hussein have the same skeleton. Written solid, Abdulrahman and Abdulrahim differ by one letter in seven and score 0.86. Arabic against Arabic keeps Hasan and Husayn apart because it compares letters, not skeletons. Use the score and `confidence` as a screen that feeds human review, not as an identity decision.
+- **Name skeletons drop vowels, so differences in vowels alone collide.** Rashid and Rashad, Omar and Amir, Nawaf and Naif, and (across scripts) Hasan and Hussein have the same skeleton. Written solid, Abdulrahman and Abdulrahim differ by one letter in seven and score 0.86. Arabic against Arabic keeps Hasan and Husayn apart because it compares letters, not skeletons. Use the score and `confidence` as a screen that feeds human review, not as an identity decision.
 - **Short names are weak evidence.** A skeleton of one or two letters (Ali, Aisha) is flagged `confidence="low"` because many unrelated names look alike.
 - **Name matching does not know nicknames or translations** (Yusuf and Joseph) or abbreviations (Mohammed and Mohd). Those are in the pinned misses.
-- **The light stemmer over-strips** by design: عربي becomes عرب, and a verb ending in ون loses it like a plural does. It does not touch broken plurals.
+- **The light stemmer strips too much** by design: عربي becomes عرب, and a verb ending in ون loses it like a plural does. It does not touch broken plurals.
 - **Hamza folding and teh marbuta folding are lossy.** They exist to match, not to display. The `legacy` profile does neither.
 - **Dialect hints are a lookup, not a classifier.** The word list is short and conservative, and text without any marker word says nothing about its dialect. The Arabizi score is a pattern heuristic for routing.
-- **Search is small-scale.** BM25 in pure Python over an in-memory index suits thousands of documents, not millions. Use the analyzers as a front end for a real engine at scale.
-- **The Buckwalter table is the standard one**; text outside it passes through, so mixed Latin-and-Arabic text only converts in one direction.
+- **Search is small.** BM25 in pure Python over an index held in memory suits thousands of documents, not millions. Use the analyzers as a front end for a real engine at scale.
+- **The Buckwalter table is the standard one**; text outside it passes through, so text that mixes Latin and Arabic only converts in one direction.
 
 ## Tests
 
