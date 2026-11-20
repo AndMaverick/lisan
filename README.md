@@ -108,6 +108,6 @@ MIT licensed. Built by [AndMaverick LLC](https://www.andmaverick.com).
 
 ---
 
-**Related reading:** [The Language They Did Not Build For](https://blog.andmaverick.com/the-language-they-did-not-build-for?utm_source=github&utm_medium=repo&utm_campaign=lisan)
+**Read the thinking:** [The Language They Did Not Build For](https://blog.andmaverick.com/the-language-they-did-not-build-for?utm_source=github&utm_medium=repo&utm_campaign=lisan)
 
 **If this is your problem.** If your data, language, or jurisdiction sits outside the assumptions of American AI infrastructure, that is work I do. Let us talk. [Begin a conversation](https://calendly.com/andmaverick?utm_source=github&utm_medium=repo&utm_campaign=lisan).
